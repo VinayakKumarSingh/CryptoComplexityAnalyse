@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABE Complexity Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: sans-serif; margin: 20px; line-height: 1.6; background-color: #f4f4f4; color: #333; }
+        .container { max-width: 900px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1, h2 { color: #0056b3; }
+        form { margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;}
+        form p { margin-bottom: 15px; }
+        form label { display: block; margin-bottom: 5px; font-weight: bold; }
+        form input[type="number"], form select { width: calc(100% - 22px); padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        form button { padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; }
+        form button:hover { background-color: #218838; }
+        .results-container { margin-top: 20px; }
+        #resultsTable { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        #resultsTable th, #resultsTable td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        #resultsTable th { background-color: #007bff; color: white; }
+        #resultsTable tr:nth-child(even) { background-color: #f2f2f2; }
+        .chart-container { width: 100%; max-width: 700px; margin: 20px auto; }
+        .error-message { color: red; font-weight: bold; margin-bottom: 15px; }
+        .loader { border: 5px solid #f3f3f3; border-top: 5px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; display: none; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .nav-link { display: inline-block; margin-bottom:20px; padding: 8px 15px; background-color: #6c757d; color: white; text-decoration: none; border-radius: 5px; }
+        .nav-link:hover { background-color: #5a6268; }
+        .footer { text-align: center; margin-top: 30px; font-size: 0.9em; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="{% url 'home_page' %}" class="nav-link">&laquo; Back to Home</a>
+        <h1>ABE Performance Analysis</h1>
+
+        <form id="benchmarkForm">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Run Benchmark</button>
+        </form>
+
+        <div class="loader" id="loader"></div>
+
+        <div class="results-container" id="resultsContainer" style="display:none;">
+            <h2>Benchmark Results</h2>
+            <div class="chart-container">
+                <canvas id="runtimeChart"></canvas>
+            </div>
+            <table id="resultsTable">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data will be populated by JavaScript -->
+                </tbody>
+            </table>
+            <p style="margin-top:15px; font-size:0.9em; color: #555;">
+                <em>Note: These are simulated timings for demonstration. Actual performance of ABE schemes depends on the specific cryptographic library, underlying mathematical operations (e.g., pairings on elliptic curves), and hardware. Asynchronous task execution (e.g., using Celery) would be recommended for more resource-intensive, real-world ABE operations to avoid blocking web requests.</em>
+            </p>
+        </div>
+         <div class="footer">
+            <p>&copy; 2024 CryptoComplexitySite. For demonstration purposes.</p>
+        </div>
+    </div>
+
+    <script>
+        let runtimeChart = null; // To keep track of the Chart instance
+
+        document.getElementById('benchmarkForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const resultsContainer = document.getElementById('resultsContainer');
+            const loader = document.getElementById('loader');
+            const tableBody = document.querySelector('#resultsTable tbody');
+
+            resultsContainer.style.display = 'none'; // Hide previous results
+            loader.style.display = 'block'; // Show loader
+            tableBody.innerHTML = ''; // Clear previous table data
+
+            fetch("{% url 'analysis:run_benchmark' %}", {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                loader.style.display = 'none'; // Hide loader
+                if (data.success) {
+                    resultsContainer.style.display = 'block';
+                    const results = data.results;
+
+                    // Populate Table
+                    tableBody.innerHTML = `
+                        <tr><td>Dataset Size</td><td>${results.dataset_size}</td></tr>
+                        <tr><td>Number of Attributes</td><td>${results.num_attributes}</td></tr>
+                        <tr><td>ABE Scheme</td><td>${results.abe_scheme}</td></tr>
+                        <tr><td colspan="2" style="background-color: #e9ecef; font-weight: bold;">Empirical Timings (ms)</td></tr>
+                        <tr><td>Key Generation Time</td><td>${results.key_generation_time.toFixed(2)} ms</td></tr>
+                        <tr><td>Encryption Time</td><td>${results.encryption_time.toFixed(2)} ms</td></tr>
+                        <tr><td>Decryption Time</td><td>${results.decryption_time.toFixed(2)} ms</td></tr>
+                        <tr><td colspan="2" style="background-color: #e9ecef; font-weight: bold;">Theoretical Complexity (Big-O)</td></tr>
+                        <tr><td>Key Generation</td><td>${results.theoretical_complexity.key_generation || 'N/A'}</td></tr>
+                        <tr><td>Encryption</td><td>${results.theoretical_complexity.encryption || 'N/A'}</td></tr>
+                        <tr><td>Decryption</td><td>${results.theoretical_complexity.decryption || 'N/A'}</td></tr>
+                    `;
+
+                    // Prepare Chart Data
+                    const chartData = {
+                        labels: ['Key Generation', 'Encryption', 'Decryption'],
+                        datasets: [{
+                            label: 'Execution Time (ms)',
+                            data: [
+                                results.key_generation_time,
+                                results.encryption_time,
+                                results.decryption_time
+                            ],
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.5)',
+                                'rgba(54, 162, 235, 0.5)',
+                                'rgba(75, 192, 192, 0.5)'
+                            ],
+                            borderColor: [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(75, 192, 192, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    };
+
+                    // Create or Update Chart
+                    const ctx = document.getElementById('runtimeChart').getContext('2d');
+                    if (runtimeChart) {
+                        runtimeChart.destroy(); // Destroy previous chart instance if exists
+                    }
+                    runtimeChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: chartData,
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Time (milliseconds)'
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                title: {
+                                    display: true,
+                                    text: `Performance for ${results.abe_scheme}`
+                                }
+                            }
+                        }
+                    });
+
+                } else {
+                    let errorMsg = 'An error occurred.';
+                    if (data.errors) {
+                        errorMsg = Object.values(data.errors).map(e => e[0]).join('\n');
+                    }
+                    alert('Error: ' + errorMsg);
+                }
+            })
+            .catch(error => {
+                loader.style.display = 'none';
+                console.error('Error:', error);
+                alert('An unexpected error occurred. Please check the console.');
+            });
+        });
+    </script>
+</body>
+</html>

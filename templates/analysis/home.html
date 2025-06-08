@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoComplexitySite - Home</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; line-height: 1.6; background-color: #f4f4f4; color: #333; }
+        .container { max-width: 900px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1, h2 { color: #0056b3; }
+        p { margin-bottom: 1em; }
+        .button-link { display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; }
+        .button-link:hover { background-color: #0056b3; }
+        .footer { text-align: center; margin-top: 30px; font-size: 0.9em; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to CryptoComplexityAnalyse</h1>
+        <p>This project demonstrates an Attribute-Based Encryption (ABE) system applied to a static dataset and provides a detailed analysis of its algorithmic complexities.</p>
+
+        <h2>What is Attribute-Based Encryption (ABE)?</h2>
+        <p>
+            Attribute-Based Encryption (ABE) is a type of public-key cryptography in which the secret key of a user and the ciphertext are dependent upon attributes (e.g., country, department, role). In an ABE system, the decryption of a ciphertext is possible only if the set of attributes of the user key matches the attributes of the ciphertext.
+        </p>
+        <p>
+            ABE schemes are particularly useful for enforcing fine-grained access control on encrypted data, making them suitable for secure data sharing and management in various environments, such as cloud storage or healthcare systems.
+        </p>
+
+        <h3>Variants of ABE:</h3>
+        <ul>
+            <li>
+                <strong>Ciphertext-Policy ABE (CP-ABE):</strong> In CP-ABE, a user's private key is associated with a set of attributes, and a ciphertext is encrypted with an access policy (a logical expression over attributes). A user can decrypt the ciphertext if and only if their attributes satisfy the policy associated with the ciphertext. This scheme allows encryptors to define who can decrypt their data.
+            </li>
+            <li>
+                <strong>Key-Policy ABE (KP-ABE):</strong> In KP-ABE, ciphertexts are encrypted with a set of attributes, and user private keys are associated with an access policy. A user can decrypt a ciphertext if the attributes associated with the ciphertext satisfy the policy associated with their key. This scheme gives the key issuer control over which ciphertexts a user can decrypt.
+            </li>
+        </ul>
+
+        <h2>Importance in Secure Static Data Management</h2>
+        <p>
+            For static datasets (datasets that do not change frequently), ABE provides a powerful mechanism to encrypt the data once and then manage access by issuing or revoking attribute-based keys. This is more efficient than re-encrypting data for different users or groups, especially in scenarios with many users and complex access rules.
+        </p>
+        <p>
+            By analyzing the complexity of key generation, encryption, and decryption operations, we can better understand the performance implications of using ABE in real-world systems and make informed decisions about its deployment.
+        </p>
+
+        <a href="{% url 'analysis:analysis_page' %}" class="button-link">Go to Analysis Page</a>
+
+        <div class="footer">
+            <p>&copy; 2024 CryptoComplexitySite. For demonstration purposes.</p>
+        </div>
+    </div>
+</body>
+</html>
