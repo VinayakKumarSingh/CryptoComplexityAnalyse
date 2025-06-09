@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import os
+import sys
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -52,10 +54,14 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'CryptoComplexitySite.urls'
 
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'CryptoComplexitySite/static'),
+]
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'CryptoComplexitySite/templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

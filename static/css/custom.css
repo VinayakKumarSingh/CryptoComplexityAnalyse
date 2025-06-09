@@ -1,0 +1,157 @@
+/* General Body Styles */
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #f8f9fa; /* Light gray background */
+    color: #343a40; /* Darker text for better contrast */
+    line-height: 1.7;
+    font-size: 1rem; /* Base font size */
+}
+
+/* Navbar Styling */
+.navbar {
+    box-shadow: 0 2px 4px rgba(0,0,0,.1);
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.navbar-brand {
+    font-weight: 700; /* Bolder brand name */
+    font-size: 1.5rem;
+    color: #007bff !important; /* Primary color for brand */
+}
+
+.navbar-nav .nav-link {
+    font-weight: 500;
+    color: #495057; /* Slightly lighter nav link color */
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.navbar-nav .nav-link:hover,
+.navbar-nav .nav-link.active {
+    color: #0056b3; /* Darker blue on hover/active */
+}
+
+/* Main Content Area */
+.main-content {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+
+/* Footer Styling */
+.footer {
+    background-color: #343a40; /* Dark background for footer */
+    color: #f8f9fa; /* Light text for footer */
+    padding: 2rem 0;
+    margin-top: 3rem;
+}
+
+.footer a {
+    color: #adb5bd; /* Lighter link color for footer */
+}
+
+.footer a:hover {
+    color: #ffffff;
+}
+
+/* Button Enhancements */
+.btn {
+    border-radius: 0.3rem; /* Slightly more rounded corners */
+    padding: 0.6rem 1.2rem;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.25);
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+    transform: translateY(-2px); /* Subtle lift on hover */
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+.btn-secondary {
+    box-shadow: 0 2px 4px rgba(108, 117, 125, 0.25);
+}
+
+.btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+}
+
+/* Card Styling */
+.card {
+    border: none; /* Remove default card border */
+    border-radius: 0.5rem; /* More pronounced rounded corners for cards */
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0,0,0,.075); /* Softer border for card header */
+    font-weight: 600;
+}
+
+.card-title {
+    font-weight: 600;
+    color: #0056b3;
+}
+
+/* Chart Container (if specific styling beyond Bootstrap is needed) */
+.chart-container {
+    padding: 1.5rem;
+    background-color: #ffffff;
+    border-radius: 0.3rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);
+}
+
+/* Table Styling */
+.table {
+    margin-bottom: 0; /* Remove bottom margin if table is last element in a card */
+}
+
+.table thead th {
+    background-color: #e9ecef; /* Light gray for table headers */
+    color: #212529; /* Dark text for table headers */
+    font-weight: 600;
+    border-bottom-width: 1px; /* Thinner bottom border for header */
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f1f3f5; /* Subtle hover effect for table rows */
+}
+
+/* Icon Styling */
+.fas, .fab, .far {
+    margin-right: 0.5rem;
+}
+
+/* Utility Classes */
+.text-primary {
+    color: #007bff !important;
+}
+
+.bg-primary-soft {
+    background-color: rgba(0, 123, 255, 0.1);
+}
+
+/* Responsive Typography (Example) */
+h1, .h1 {
+    font-size: 2.25rem; /* Slightly smaller h1 for better balance */
+}
+
+@media (max-width: 768px) {
+    h1, .h1 { font-size: 1.8rem; }
+    h2, .h2 { font-size: 1.6rem; }
+}
+
+/* Subtle background pattern (optional) */
+/*
+body {
+    background-image: url("data:image/svg+xml,%3Csvg width='52' height='26' viewBox='0 0 52 26' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23ced4da' fill-opacity='0.1'%3E%3Cpath d='M10 10c0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6h2c0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4v2c-3.314 0-6-2.686-6-6 0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6zm25.464-1.95l8.486 8.486-1.414 1.414-8.486-8.486 1.414-1.414z' /%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+*/
