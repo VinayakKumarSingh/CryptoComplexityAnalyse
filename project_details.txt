@@ -1,0 +1,122 @@
+# Project Documentation: Crypto Complexity Analyzer
+
+## 1. Project Overview
+
+### Purpose
+This project is a web-based application designed to analyze and benchmark the performance of Attribute-Based Encryption (ABE) schemes. It allows users to run performance tests on cryptographic operations under different complexity scenarios and visualize the results. The primary goal is to understand how factors like the number of attributes and the complexity of access policies affect the efficiency of ABE.
+
+### Technology Stack
+- **Backend Framework:** Django
+- **Asynchronous Task Queue:** Celery
+- **Message Broker:** Redis
+- **Cryptography Library:** charm-crypto
+- **Containerization:** Docker and Docker Compose
+
+### Key Components & File Structure
+
+- `CryptoComplexitySite/`
+  - `settings.py`: Main Django project settings, including database configuration, installed apps, and Celery configuration.
+  - `celery.py`: Configuration file for the Celery application, linking it to the Django project.
+  - `urls.py`: Root URL configuration for the Django project.
+
+- `analysis/` (The core Django app)
+  - `tasks.py`: **This is the heart of the application.** It contains the Celery tasks that perform all the computationally intensive cryptographic operations (setup, key generation, encryption, decryption). This is done asynchronously to avoid blocking the web server.
+  - `views.py`: Handles incoming HTTP requests from the user's browser. It triggers the Celery tasks and provides endpoints for the frontend to poll for task status and results.
+  - `urls.py`: Defines the URL endpoints for the `analysis` app (e.g., `/run-benchmark/`, `/task_status/<task_id>/`).
+  - `templates/`: Contains the HTML templates for rendering the user interface.
+
+- `Dockerfile`: Instructions to build the Docker image for the web application, including installing system dependencies (like `pbc` and `gmp`) and Python packages.
+
+- `docker-compose.yml`: Defines the multi-container Docker application, orchestrating the `web` (Django), `celery`, and `redis` services to work together.
+
+- `requirements.txt`: Lists the Python dependencies for the project.
+
+---
+
+## 2. Attribute-Based Encryption (ABE) Explained
+
+Attribute-Based Encryption is a form of public-key encryption where the secret key of a user and the ciphertext are dependent upon attributes (e.g., role, location, department) rather than a specific identity. The two main types are Ciphertext-Policy ABE (CP-ABE) and Key-Policy ABE (KP-ABE).
+
+### Ciphertext-Policy ABE (CP-ABE)
+
+This is the scheme currently implemented in the project (`CPabe_BSW07`).
+
+- **Concept:** A user's private key is associated with a set of attributes. A ciphertext is encrypted with an access policy defined over a set of attributes. A user can only decrypt the ciphertext if the attributes associated with their private key satisfy the access policy of the ciphertext.
+
+- **Analogy:** Think of a secure room (the encrypted data) with a sophisticated electronic lock (the access policy). The lock might require that "a person must be a 'Manager' AND from the 'Engineering' department OR a 'Director'". A user is given a keycard (their private key) that is programmed with their attributes ('Manager', 'Engineering'). Because their attributes satisfy the policy, their keycard can open the lock.
+
+- **Project Implementation:**
+  - `encrypt_data` takes a `policy` string (e.g., `'attr1 and attr2'`).
+  - `generate_key` takes a list of `attributes` (e.g., `['attr1', 'attr2', 'attr3']`).
+
+### Key-Policy ABE (KP-ABE)
+
+This scheme is **not** currently implemented in the project, but it's important to know the difference.
+
+- **Concept:** The roles are reversed. A user's private key is associated with an access policy. A ciphertext is encrypted with a set of attributes. A user can only decrypt the ciphertext if the attributes associated with the ciphertext satisfy the policy of their private key.
+
+- **Analogy:** Using the same secure room analogy, the lock on the door is now simpler and is just labeled with attributes like 'Confidential' and 'Internal'. A user is given a special keycard (private key) that is programmed with a policy, for instance, "can open any door that is labeled 'Confidential' AND 'Internal'".
+
+---
+
+## 3. Encryption Complexity Levels Explained
+
+The benchmark allows testing under three complexity levels: **Simple, Medium, and Complex**. These levels are determined by two parameters sent from the frontend:
+
+1.  **Number of Attributes (`num_attributes`):** The total count of unique attributes in the system.
+2.  **Policy Complexity (`policy_complexity`):** How many of those attributes are used to construct the access policy.
+
+Here’s how they differ in the context of the benchmark:
+
+- **Simple:**
+  - **Attributes:** A small number (e.g., 10).
+  - **Policy:** A simple policy using only a few of those attributes (e.g., 2 out of 10), like `'attr0 and attr1'`.
+  - **Impact:** Cryptographic operations are very fast.
+
+- **Medium:**
+  - **Attributes:** A moderate number (e.g., 25).
+  - **Policy:** A more complex policy using more attributes (e.g., 10 out of 25).
+  - **Impact:** Operations take noticeably longer than the simple case.
+
+- **Complex:**
+  - **Attributes:** A large number (e.g., 50).
+  - **Policy:** A highly complex policy using many attributes (e.g., 25 out of 50).
+  - **Impact:** Operations are significantly slower, demonstrating the performance cost of high-security, fine-grained access control.
+
+In the current implementation, the policy is always a conjunction (`' and '`.join(attributes)), which guarantees that the key with all attributes can always decrypt. This was done to simplify debugging, but in a real-world scenario, policies can be much more complex (involving `or` and thresholds).
+
+---
+
+## 4. Potential Interview Questions & Answers
+
+**Q1: What is the core purpose of this project?**
+
+> **A:** The project's core purpose is to serve as a performance analysis tool for Attribute-Based Encryption. It benchmarks the four main cryptographic operations—setup, key generation, encryption, and decryption—to measure how their performance is impacted by the number of attributes and the complexity of the access policy. This is valuable for understanding the practical trade-offs of implementing ABE in real-world systems.
+
+**Q2: Can you explain the difference between CP-ABE and KP-ABE, and which one is used here?**
+
+> **A:** In Ciphertext-Policy ABE (CP-ABE), access policies are embedded within the encrypted data, and user keys are issued based on their attributes. A user can decrypt if their attributes satisfy the policy. In Key-Policy ABE (KP-ABE), the roles are reversed: policies are built into the user keys, and ciphertexts are tagged with attributes. This project implements CP-ABE, using the Bethencourt-Sahai-Waters 07 scheme from the `charm-crypto` library.
+
+**Q3: Why are the cryptographic operations run asynchronously using Celery?**
+
+> **A:** ABE operations, especially with high complexity, are computationally expensive and can take several seconds or even minutes to complete. If these were run synchronously in a standard Django web request, the request would time out, and the user's browser would hang. By using Celery, we offload these long-running tasks to a separate worker process. The web view can immediately return a task ID to the user, and the frontend can then poll an endpoint to check the task's status and retrieve the result once it's ready, creating a non-blocking, responsive user experience.
+
+**Q4: During development, there were issues with data serialization. What was the problem and how was it fixed?**
+
+> **A:** The `charm-crypto` library produces cryptographic keys and ciphertexts as raw binary data (bytes). The initial implementation attempted to store this data by decoding it as a UTF-8 string, which is unreliable because not all byte sequences are valid in UTF-8. This led to data corruption and decryption failures. The issue was resolved by using `base64` encoding. `base64` is a standard way to convert binary data into a safe ASCII string format, ensuring that the data can be transmitted and stored in formats like JSON without being altered. All cryptographic objects are now encoded to `base64` before being sent from the tasks and decoded from `base64` when they are received.
+
+**Q5: What does the `ValueError: Failed to decrypt symmetric key` typically indicate in this application?**
+
+> **A:** This error means that the set of attributes associated with the decryption key does not satisfy the access policy embedded in the ciphertext. In a CP-ABE scheme, this is the expected outcome when an unauthorized user tries to access data. During development, however, it pointed to a bug, such as an error in the policy generation logic or the data corruption issue that was later fixed with `base64` encoding.
+
+**Q6: How would you extend this project to support KP-ABE?**
+
+> **A:** To add KP-ABE support, I would:
+> 1.  **Select a Scheme:** Choose a KP-ABE implementation from `charm-crypto`, such as `abenc_waters09`.
+> 2.  **Create New Tasks:** Duplicate the existing Celery tasks in `tasks.py` and modify them to use the KP-ABE scheme. For example, `encrypt_data_kp` would take a list of attributes, and `generate_key_kp` would take a policy string.
+> 3.  **Update the Benchmark Task:** Modify the main `benchmark_abe` task to accept a parameter specifying the scheme (`'CP-ABE'` or `'KP-ABE'`) and call the appropriate underlying tasks.
+> 4.  **Modify the Frontend:** Update the UI to include a dropdown or radio buttons, allowing the user to select which ABE scheme they want to benchmark.
+
+**Q7: What is the role of the `PairingGroup` object from `charm-crypto`?**
+
+> **A:** The `PairingGroup` is the foundational mathematical structure for the ABE scheme. ABE is built on a field of mathematics called pairing-based cryptography. The `PairingGroup` object initializes the necessary elliptic curves and defines the bilinear pairing operation (`e: G1 x G1 -> GT`) that is the core of the cryptographic protocol. The string `'SS512'` specifies the type of curve to use—in this case, a symmetric pairing on a 512-bit base field, which determines the security level.

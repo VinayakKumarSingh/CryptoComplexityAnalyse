@@ -53,7 +53,21 @@ This Django web application demonstrates a simulated implementation of an Attrib
     python manage.py migrate
     ```
 
-## Running the Development Server
+## Running the Project with Docker
+
+To run this project using Docker, you will need to have Docker and Docker Compose installed on your machine.
+
+1.  **Build and run the containers:**
+
+    ```bash
+    docker-compose up --build
+    ```
+
+2.  **Access the application:**
+
+    Once the containers are running, you can access the web application by navigating to `http://localhost:8000` in your web browser.
+
+## Running the Project Locally (Without Docker)
 
 1.  **Start the server:**
     ```bash
